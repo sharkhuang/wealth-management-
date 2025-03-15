@@ -60,6 +60,10 @@ A scalable and reliable wealth management platform built with Next.js and FastAP
    cd frontend
    npm run dev
    ```
+Or Run script
+```bash
+1. start-dev.sh
+```
 
 ## Architecture
 
@@ -70,6 +74,8 @@ The application follows a microservices architecture for scalability:
 - Document Service: S3-compatible storage
 - Cache Layer: Redis
 - Database: PostgreSQL
+- Celery: for document analysis job
+- OpenAI/LLM: analyze document
 
 ## Performance & Reliability
 
