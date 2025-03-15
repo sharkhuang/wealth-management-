@@ -44,13 +44,7 @@ A scalable and reliable wealth management platform built with Next.js and FastAP
    cd frontend
    npm install
    ```
-
-3. Start the development environment:
-   ```bash
-   docker-compose up -d
-   ```
-
-4. Run the applications:
+3. Run the applications:
    ```bash
    # Backend
    cd backend
@@ -61,9 +55,13 @@ A scalable and reliable wealth management platform built with Next.js and FastAP
    npm run dev
    ```
 Or Run script
-```bash
-1. start-dev.sh
-```
+   ```bash
+  start-dev.sh
+
+  # Frontend
+  cd frontend
+  npm run dev
+  ```
 
 ## Architecture
 
