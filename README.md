@@ -6,7 +6,6 @@ A scalable and reliable wealth management platform built with Next.js and FastAP
 
 - Net worth tracking with interactive graphs
 - Document management (upload, browse, download)
-- Secure user authentication
 - Real-time data updates
 
 ## Tech Stack
