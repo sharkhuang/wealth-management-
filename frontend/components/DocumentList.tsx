@@ -1,16 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import axios from 'axios'
-import { DocumentIcon, ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { useState, useEffect } from 'react'
+import { DocumentIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
+import api from '@/app/api'
+import toast from 'react-hot-toast'
 
 interface Document {
-  id: string
-  name: string
-  uploadDate: string
-  size: number
-  type: string
-  url: string
+  name: string;
+  date: string;
+  type: string;
+  size: string;
 }
 
 export default function DocumentList() {
@@ -23,119 +22,78 @@ export default function DocumentList() {
 
   const fetchDocuments = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/v1/documents')
-      setDocuments(response.data)
-    } catch (error) {
-      console.error('Error fetching documents:', error)
-      // Use sample data for demonstration
-      setDocuments(generateSampleDocuments())
+      const response = await api.get('/documents/list')
+      const formattedDocs = response.data.map((doc: any) => ({
+        name: doc.name,
+        date: new Date(doc.created_at).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }),
+        type: doc.name.split('.').pop()?.toUpperCase() || 'Unknown',
+        size: formatFileSize(doc.size)
+      }))
+      setDocuments(formattedDocs)
+    } catch (err) {
+      console.error('Error fetching documents:', err)
+      toast.error('Failed to fetch documents')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleDownload = async (document: Document) => {
-    try {
-      const response = await axios.get(document.url, {
-        responseType: 'blob',
-      })
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = window.document.createElement('a')
-      link.href = url
-      link.setAttribute('download', document.name)
-      window.document.body.appendChild(link)
-      link.click()
-      link.remove()
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Error downloading document:', error)
-    }
-  }
-
-  const handleDelete = async (documentId: string) => {
-    try {
-      await axios.delete(`http://localhost:8000/api/v1/documents/${documentId}`)
-      setDocuments(documents.filter(doc => doc.id !== documentId))
-    } catch (error) {
-      console.error('Error deleting document:', error)
-    }
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const sizes = ['B', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`
   }
 
   if (loading) {
-    return <div className="text-center py-4">Loading documents...</div>
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-slate-200">Documents</h2>
+        </div>
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-8">
+          <div className="flex items-center justify-center">
+            <div className="text-sm text-slate-400">Loading documents...</div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="overflow-hidden">
-      <ul role="list" className="divide-y divide-gray-200">
-        {documents.map((document) => (
-          <li key={document.id} className="py-4 flex items-center justify-between">
-            <div className="flex items-center min-w-0 gap-x-4">
-              <DocumentIcon className="h-8 w-8 text-gray-400" />
-              <div className="min-w-0 flex-auto">
-                <p className="text-sm font-semibold leading-6 text-gray-900 truncate">
-                  {document.name}
-                </p>
-                <p className="mt-1 text-xs leading-5 text-gray-500">
-                  {new Date(document.uploadDate).toLocaleDateString()} • {formatFileSize(document.size)}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleDownload(document)}
-                className="rounded-full p-2 text-gray-400 hover:text-gray-500"
-              >
-                <ArrowDownTrayIcon className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => handleDelete(document.id)}
-                className="rounded-full p-2 text-gray-400 hover:text-red-500"
-              >
-                <TrashIcon className="h-5 w-5" />
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-slate-200">
+          Documents
+        </h2>
+      </div>
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-slate-700/50">
+              <th className="text-left py-3 px-6 text-sm font-medium text-slate-400">Name</th>
+              <th className="text-left py-3 px-6 text-sm font-medium text-slate-400">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {documents.map((doc, i) => (
+              <tr key={i} className="border-b border-slate-700/50 last:border-0 hover:bg-slate-700/20 transition-colors cursor-pointer">
+                <td className="py-4 px-6">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-200">{doc.name}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-6 text-sm text-slate-300">{doc.date}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
-  )
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
-
-function generateSampleDocuments(): Document[] {
-  return [
-    {
-      id: '1',
-      name: 'tax_return_2023.pdf',
-      uploadDate: '2024-01-15T10:30:00Z',
-      size: 2457600,
-      type: 'application/pdf',
-      url: '#',
-    },
-    {
-      id: '2',
-      name: 'investment_statement_q4.docx',
-      uploadDate: '2024-02-01T15:45:00Z',
-      size: 1048576,
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      url: '#',
-    },
-    {
-      id: '3',
-      name: 'property_deed.pdf',
-      uploadDate: '2024-02-15T09:20:00Z',
-      size: 3145728,
-      type: 'application/pdf',
-      url: '#',
-    },
-  ]
+  );
 } 

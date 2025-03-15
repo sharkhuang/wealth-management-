@@ -1,26 +1,26 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from typing import List
 import uvicorn
 
-from app.core.config import settings
-from app.core.database import get_db
 from app.api.v1.api import api_router
 
 app = FastAPI(
     title="Wealth Management Platform",
     description="API for wealth management and document handling",
     version="1.0.0",
+    # Disable automatic redirect for trailing slashes
+    redirect_slashes=False
 )
 
 # CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 
 # Include API router

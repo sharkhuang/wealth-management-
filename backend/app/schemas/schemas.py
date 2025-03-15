@@ -27,10 +27,14 @@ class DocumentCreate(DocumentBase):
 
 class Document(DocumentBase):
     id: int
+    name: str
+    type: str
+    size: int
     s3_key: str
-    created_at: datetime
-    updated_at: datetime
     url: Optional[str] = None
+    created_at: datetime
+    analysis_status: str
+    analysis_result: Optional[str] = None
 
     class Config:
         from_attributes = True 
